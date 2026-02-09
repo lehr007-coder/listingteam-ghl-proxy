@@ -26,14 +26,14 @@
     }
 
     .ylopo-page {
-      max-width: 780px;
+      max-width: 1640px;
       margin: 48px auto 0;
       padding: 0 12px;
     }
 
     .ylopo-stats-grid {
       display: grid;
-      grid-template-columns: repeat(7, minmax(0, 1fr));
+      grid-template-columns: repeat(8, minmax(120px, 1fr));
       gap: 8px;
       align-items: stretch;
     }
@@ -95,40 +95,19 @@
     }
 
     .ylopo-anon-row {
-      margin-top: 8px;
-      width: calc((100% - 48px) / 7);
-      min-width: 101px;
+      margin-top: 0;
     }
 
     .ylopo-hidden-section {
       display: none;
     }
 
-    @media (max-width: 920px) {
-      .ylopo-stats-grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-      }
-
-      .ylopo-anon-row {
-        width: calc((100% - 24px) / 4);
-      }
-    }
-
-    @media (max-width: 560px) {
-      .ylopo-stats-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .ylopo-anon-row {
-        width: calc((100% - 8px) / 2);
-      }
-    }
+    
   </style>
 </head>
 <body>
   <div class="ylopo-page">
     <div class="ylopo-stats-grid" id="ylopoStatsGrid"></div>
-    <div class="ylopo-anon-row" id="ylopoAnonWrap"></div>
 
     <section id="ylopo-activity-section" class="ylopo-hidden-section"></section>
     <section id="ylopo-listings-section" class="ylopo-hidden-section"></section>
@@ -152,7 +131,7 @@
       { key: "anonymous", label: "Anonymous", icon: "👤", value: 0, subtext: "Last 30 days" }
     ];
 
-    function createStatCard(card, isCompact = false) {
+    function createStatCard(card) {
       const cardEl = document.createElement("article");
       cardEl.className = `ylopo-stat-card${card.active ? " is-active" : ""}`;
       cardEl.setAttribute("data-key", card.key);
@@ -164,26 +143,14 @@
         </div>
         <div class="ylopo-stat-subtext">${card.subtext}</div>
       `;
-      if (isCompact) {
-        cardEl.classList.remove("is-active");
-      }
       return cardEl;
     }
 
     function renderStats() {
       const statsGrid = document.getElementById("ylopoStatsGrid");
-      const anonWrap = document.getElementById("ylopoAnonWrap");
-
-      const mainCards = statCards.filter((card) => card.key !== "anonymous");
-      const anonymousCard = statCards.find((card) => card.key === "anonymous");
-
-      mainCards.forEach((card) => {
+      statCards.forEach((card) => {
         statsGrid.appendChild(createStatCard(card));
       });
-
-      if (anonymousCard) {
-        anonWrap.appendChild(createStatCard(anonymousCard, true));
-      }
     }
 
     renderStats();
