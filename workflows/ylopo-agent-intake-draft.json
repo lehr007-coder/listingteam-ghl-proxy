@@ -1,0 +1,160 @@
+{
+  "name": "Ylopo Agent Intake (DRAFT)",
+  "mode": "draft",
+  "trigger": {
+    "type": "inbound_webhook",
+    "allowedEventTypes": [
+      "REGISTRATION",
+      "INITIAL_LANDING",
+      "SHOWING_REQUEST",
+      "REQUEST_INFORMATION",
+      "FAVORITE_LISTING",
+      "VIEW_LISTING_DETAIL",
+      "SEARCH",
+      "SAVED_SEARCH",
+      "QUESTIONNAIRE_SUBMISSION",
+      "STATS_UPDATE",
+      "NOTE",
+      "PRIORITY_LEAD_EVENT",
+      "TAG",
+      "CONTACT_INFO_UPDATED"
+    ]
+  },
+  "customFields": [
+    {
+      "name": "ylopo_raw_json",
+      "type": "long_text",
+      "createIfMissing": true
+    }
+  ],
+  "normalization": {
+    "lead": [
+      "eventType",
+      "eventDate",
+      "lead.email",
+      "lead.phone",
+      "lead.firstName",
+      "lead.lastName",
+      "lead.uuid",
+      "lead.crmId",
+      "lead.leadType",
+      "lead.starsLink"
+    ],
+    "listing": [
+      "listing.mlsNumber",
+      "listing.url",
+      "listing.address",
+      "listing.city",
+      "listing.state",
+      "listing.zip",
+      "listing.price",
+      "listing.bedrooms",
+      "listing.bathrooms",
+      "listing.sqFt"
+    ],
+    "search": [
+      "search.locations",
+      "search.minPrice",
+      "search.maxPrice",
+      "search.bedrooms",
+      "search.bathrooms"
+    ],
+    "sessionStats": [
+      "lead.lastSessionListingsViewed",
+      "lead.lastSessionListingsSaved",
+      "lead.lastSessionShowingInfoRequests",
+      "lead.lastSessionTotalVisits"
+    ],
+    "tagChanges": [
+      "addedTags",
+      "removedTags"
+    ]
+  },
+  "eventTags": {
+    "REGISTRATION": "ylopo_registration",
+    "SHOWING_REQUEST": "ylopo_showing_request",
+    "REQUEST_INFORMATION": "ylopo_request_info",
+    "FAVORITE_LISTING": "ylopo_favorited",
+    "VIEW_LISTING_DETAIL": "ylopo_listing_view",
+    "SEARCH": "ylopo_search",
+    "SAVED_SEARCH": "ylopo_saved_search",
+    "PRIORITY_LEAD_EVENT": "ylopo_priority",
+    "STATS_UPDATE": "ylopo_stats_update",
+    "CONTACT_INFO_UPDATED": "ylopo_contact_updated",
+    "NOTE": "ylopo_note",
+    "TAG": "ylopo_tag_update"
+  },
+  "priorityTags": {
+    "HOT": "ylo-hot-lead",
+    "WARM": "ylo-warm-lead",
+    "COLD": "ylo-cold-lead"
+  },
+  "contactRules": {
+    "lookupBy": "email",
+    "createIfMissing": true,
+    "safeUpsertFields": [
+      "firstName",
+      "lastName",
+      "phone",
+      "email"
+    ],
+    "skipBlankIncomingValues": true
+  },
+  "opportunityRules": {
+    "nameTemplate": "{{firstName}} {{lastName}} — {{eventType}}",
+    "routing": [
+      {
+        "when": "priority == HOT && leadType == buyer",
+        "pipeline": "Buyer Pipeline",
+        "stage": "Active Viewing"
+      },
+      {
+        "when": "priority == WARM && leadType == buyer",
+        "pipeline": "Buyer Pipeline",
+        "stage": "Warm Lead"
+      },
+      {
+        "when": "leadType == seller",
+        "pipeline": "Seller Pipeline",
+        "stage": "Property Evaluation"
+      },
+      {
+        "when": "priority == COLD",
+        "pipeline": "New Lead",
+        "stage": "Nurture"
+      }
+    ],
+    "createIfMissing": true,
+    "updateIfExists": true
+  },
+  "notes": {
+    "title": "Ylopo Event Received",
+    "templateFields": [
+      "Event Type",
+      "Lead Name",
+      "Phone",
+      "Email",
+      "Lead Type",
+      "Listing",
+      "Price",
+      "MLS",
+      "Search Criteria",
+      "Stars Link",
+      "Intent Score",
+      "Priority",
+      "Recommended Action"
+    ]
+  },
+  "taskRule": {
+    "when": "priority == HOT",
+    "title": "URGENT CALL NOW",
+    "dueInMinutes": 5
+  },
+  "conversationRule": {
+    "when": "priority == HOT",
+    "internalSmsTemplate": "HOT YLOPO LEAD:\n{{contact_name}}\n{{eventType}}\nCall immediately."
+  },
+  "audit": {
+    "logEveryWebhookEvent": true
+  }
+}
